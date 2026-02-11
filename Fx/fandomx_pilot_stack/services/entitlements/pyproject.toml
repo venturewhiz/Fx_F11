@@ -1,0 +1,5 @@
+[project]
+name = "entitlements"
+version = "0.1.0"
+description = "Fx Entitlements"
+requires-python = ">=3.11"

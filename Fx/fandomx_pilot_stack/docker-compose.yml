@@ -1,0 +1,116 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: fx
+      POSTGRES_PASSWORD: fxpass
+      POSTGRES_DB: fxdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./optimizer/sql/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+
+  redpanda:
+    image: redpandadata/redpanda:latest
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp
+      - "1"
+      - --memory
+      - "1G"
+      - --reserve-memory
+      - "0M"
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr
+      - PLAINTEXT://redpanda:9092
+    ports:
+      - "9092:9092"
+      - "9644:9644"
+
+  optimizer:
+    build:
+      context: ./optimizer/service
+    environment:
+      - DATABASE_URL=postgresql://fx:fxpass@postgres:5432/fxdb
+      - ADMIN_TOKEN=
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
+
+  stream-consumer:
+    build:
+      context: ./optimizer
+      dockerfile: jobs/Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://fx:fxpass@postgres:5432/fxdb
+      - KAFKA_BOOTSTRAP=redpanda:9092
+      - KAFKA_TOPIC=fx_outcomes
+      - OPTIMIZER_UPDATE_URL=http://optimizer:8000/update
+    depends_on:
+      - redpanda
+      - optimizer
+
+  api-gateway:
+    build: ./services/api-gateway
+    environment:
+      - OPTIMIZER_ADMIN_URL=http://optimizer:8000/admin
+      - ADMIN_TOKEN=
+    depends_on:
+      - optimizer
+    ports:
+      - "8080:8080"
+
+  orchestrator:
+    build: ./services/orchestrator
+    ports:
+      - "8090:8090"
+    environment:
+      - OPTIMIZER_URL=http://optimizer:8000/optimize
+    depends_on:
+      - optimizer
+
+  rewards:
+    build: ./services/rewards
+    ports:
+      - "8002:8002"
+
+  entitlements:
+    build: ./services/entitlements
+    ports:
+      - "8003:8003"
+
+  live-moments:
+    build: ./services/agents/live-moments
+    ports:
+      - "8004:8004"
+    depends_on:
+      - orchestrator
+
+  club-console:
+    build: ./apps/club-console
+    ports:
+      - "3001:3001"
+    depends_on:
+      - api-gateway
+      - orchestrator
+
+  brand-console:
+    build: ./apps/brand-console
+    ports:
+      - "3002:3002"
+    depends_on:
+      - api-gateway
+      - orchestrator
+
+volumes:
+  pgdata:

@@ -1,0 +1,139 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>FandomX Fx Optimizer — Dashboard</title>
+  <style>
+    body { font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif; margin: 20px; }
+    h1 { margin: 0 0 8px 0; }
+    .row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 14px; min-width: 300px; flex: 1; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px;}
+    .muted { color: #666; font-size: 13px; }
+    .pill { display:inline-block; padding:2px 8px; border:1px solid #ccc; border-radius: 999px; font-size: 12px; }
+    .actions { display:flex; gap:10px; align-items:center; margin: 10px 0 18px; }
+    input { padding: 8px; border: 1px solid #ccc; border-radius: 8px; }
+    button { padding: 8px 12px; border-radius: 8px; border: 1px solid #111; background: #111; color: #fff; cursor: pointer; }
+    button.secondary { background: #fff; color:#111; border:1px solid #ccc; }
+    code { background: #f6f6f6; padding: 2px 6px; border-radius: 6px; }
+    a { color: #0b57d0; text-decoration:none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>Fx Optimizer Dashboard</h1>
+  <div class="muted">Monitoring for Sydney FC + Pepsi. Requires <code>X-Admin-Token</code> header if enabled.</div>
+
+  <div class="actions">
+    <a href="/ui/setup.html">Setup (tenants, campaigns, segments, creatives, offers)</a>
+    <button class="secondary" onclick="loadAll()">Refresh</button>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h3>Service Health</h3>
+      <div id="health" class="muted">Loading…</div>
+    </div>
+    <div class="card">
+      <h3>Tenants</h3>
+      <div id="tenants" class="muted">Loading…</div>
+    </div>
+    <div class="card">
+      <h3>Latest Optimize Runs</h3>
+      <div id="runs" class="muted">Loading…</div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:16px;">
+    <div class="card">
+      <h3>Recent Allocations (Selected Run)</h3>
+      <div class="muted">Pick a run to see allocations by channel/campaign.</div>
+      <div id="allocations"></div>
+    </div>
+    <div class="card">
+      <h3>Bandit Policy State (Top 25 keys)</h3>
+      <div id="policy" class="muted">Loading…</div>
+    </div>
+  </div>
+
+<script>
+const ADMIN_TOKEN = localStorage.getItem("fx_admin_token") || "";
+function headers() {
+  const h = {"Content-Type":"application/json"};
+  if (ADMIN_TOKEN) h["X-Admin-Token"] = ADMIN_TOKEN;
+  return h;
+}
+async function api(path) {
+  const res = await fetch(path, {headers: headers()});
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+function fmt(n){ return (n===null||n===undefined) ? "" : (Math.round(n*100)/100).toLocaleString(); }
+
+async function loadHealth(){
+  const h = await api("/health");
+  document.getElementById("health").innerHTML = `<span class="pill">ok</span> build: ${h.version || "n/a"}`;
+}
+async function loadTenants(){
+  const t = await api("/admin/tenants");
+  if (!t.items.length) {
+    document.getElementById("tenants").innerHTML = `<span class="muted">No tenants yet. Go to Setup.</span>`;
+    return;
+  }
+  document.getElementById("tenants").innerHTML =
+    "<ul>" + t.items.map(x=>`<li><b>${x.tenant_id}</b> — ${x.name}</li>`).join("") + "</ul>";
+}
+async function loadRuns(){
+  const r = await api("/admin/runs?limit=10");
+  if (!r.items.length) {
+    document.getElementById("runs").innerHTML = `<span class="muted">No optimize runs logged yet.</span>`;
+    return;
+  }
+  document.getElementById("runs").innerHTML =
+    "<table><thead><tr><th>Time</th><th>Run ID</th><th></th></tr></thead><tbody>" +
+    r.items.map(x=>`<tr><td>${x.timestamp}</td><td><code>${x.run_id}</code></td><td><button onclick="loadAlloc('${x.run_id}')">View</button></td></tr>`).join("") +
+    "</tbody></table>";
+}
+async function loadAlloc(run_id){
+  const a = await api(`/admin/allocations/${run_id}`);
+  if (!a.items.length) {
+    document.getElementById("allocations").innerHTML = `<span class="muted">No allocations for this run.</span>`;
+    return;
+  }
+  // group by channel
+  const byCh = {};
+  for (const row of a.items){
+    byCh[row.channel] = (byCh[row.channel] || 0) + row.allocated_budget;
+  }
+  const summary = Object.entries(byCh).map(([k,v])=>`<span class="pill">${k}: ${fmt(v)}</span>`).join(" ");
+  document.getElementById("allocations").innerHTML =
+    `<div style="margin:8px 0 12px;">${summary}</div>` +
+    "<table><thead><tr><th>Key</th><th>Budget</th><th>Score</th><th>Base EV</th></tr></thead><tbody>" +
+    a.items.slice(0,50).map(x=>`<tr><td><code>${x.key}</code></td><td>${fmt(x.allocated_budget)}</td><td>${fmt(x.score)}</td><td>${fmt(x.base_ev)}</td></tr>`).join("") +
+    "</tbody></table>" +
+    `<div class="muted" style="margin-top:8px;">Showing top 50 rows by allocation.</div>`;
+}
+async function loadPolicy(){
+  const p = await api("/admin/policy_state?limit=25");
+  if (!p.items.length) { document.getElementById("policy").innerHTML = `<span class="muted">No policy state yet.</span>`; return; }
+  document.getElementById("policy").innerHTML =
+    "<table><thead><tr><th>Key</th><th>alpha</th><th>beta</th><th>updated</th></tr></thead><tbody>" +
+    p.items.map(x=>`<tr><td><code>${x.key}</code></td><td>${fmt(x.alpha)}</td><td>${fmt(x.beta)}</td><td>${x.updated_at}</td></tr>`).join("") +
+    "</tbody></table>";
+}
+async function loadAll(){
+  try {
+    await loadHealth();
+    await loadTenants();
+    await loadRuns();
+    await loadPolicy();
+  } catch(e){
+    alert("Error: " + e.message);
+  }
+}
+loadAll();
+</script>
+</body>
+</html>

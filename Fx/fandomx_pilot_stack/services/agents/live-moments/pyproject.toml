@@ -1,0 +1,5 @@
+[project]
+name = "agents-live-moments"
+version = "0.1.0"
+description = "Live Moments Agent"
+requires-python = ">=3.11"
