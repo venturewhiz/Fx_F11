@@ -1,5 +1,10 @@
-export const API_GATEWAY_URL = process.env.NEXT_PUBLIC_API_GATEWAY_URL || "http://localhost:8080";
-export const ORCHESTRATOR_URL = process.env.NEXT_PUBLIC_ORCHESTRATOR_URL || "http://localhost:8090";
+export const API_GATEWAY_URL =
+  process.env.NEXT_PUBLIC_API_GATEWAY_URL ||
+  "https://redesigned-space-spoon-xp7vrxgpvh96wr-8080.app.github.dev";
+
+export const ORCHESTRATOR_URL =
+  process.env.NEXT_PUBLIC_ORCHESTRATOR_URL ||
+  "https://redesigned-space-spoon-xp7vrxgpvh96wr-8090.app.github.dev";
 
 export async function jsonFetch(url, options = {}) {
   const res = await fetch(url, options);
