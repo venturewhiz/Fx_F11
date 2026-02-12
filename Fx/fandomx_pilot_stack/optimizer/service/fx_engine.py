@@ -21,6 +21,8 @@ class DecisionUnit:
     inventory_owner_id: str = ""
     rights_type: str = ""
     placement_ref: str = ""
+    format_compatible: bool = True
+    category_allowed: bool = True
 
 @dataclass
 class UnitSignals:

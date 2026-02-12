@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import requests
 
 app = FastAPI(title="Live Moments Agent")
-ORCHESTRATOR_URL = "http://orchestrator:8090/events/moment.detected"
+ORCHESTRATOR_URL = "http://localhost:8090/events/moment.detected"
 
 class FeedEvent(BaseModel):
     tenant_id: str

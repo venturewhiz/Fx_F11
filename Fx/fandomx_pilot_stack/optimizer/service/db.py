@@ -1,9 +1,13 @@
 import os
+import json
 from typing import Dict, Tuple, List, Optional
 from contextlib import contextmanager
 import psycopg
 
 DB_URL = os.getenv("DATABASE_URL", "postgresql://fx:fxpass@localhost:5432/fxdb")
+
+def _json_param(v):
+    return json.dumps(v) if isinstance(v, (dict, list)) else v
 
 @contextmanager
 def get_conn():
@@ -179,7 +183,7 @@ def create_tenant(tenant_id: str, name: str, metadata: Optional[dict]) -> dict:
                VALUES (%s, %s, %s)
                ON CONFLICT (tenant_id) DO UPDATE SET name=EXCLUDED.name, metadata=EXCLUDED.metadata
                RETURNING tenant_id, name, metadata, created_at""",
-            (tenant_id, name, metadata)
+            (tenant_id, name, _json_param(metadata))
         )
         row = cur.fetchone()
         conn.commit()
@@ -200,7 +204,7 @@ def create_campaign(campaign_id: str, tenant_id: str, channel: str, name: str, o
                  tenant_id=EXCLUDED.tenant_id, channel=EXCLUDED.channel, name=EXCLUDED.name,
                  objective=EXCLUDED.objective, status=EXCLUDED.status, metadata=EXCLUDED.metadata
                RETURNING campaign_id, tenant_id, channel, name, objective, status, metadata, created_at""",
-            (campaign_id, tenant_id, channel, name, objective, status, metadata)
+            (campaign_id, tenant_id, channel, name, objective, status, _json_param(metadata))
         )
         row = cur.fetchone()
         conn.commit()
@@ -227,7 +231,7 @@ def create_segment(segment_id: str, tenant_id: str, name: str, definition: Optio
                VALUES (%s, %s, %s, %s)
                ON CONFLICT (segment_id) DO UPDATE SET tenant_id=EXCLUDED.tenant_id, name=EXCLUDED.name, definition=EXCLUDED.definition
                RETURNING segment_id, tenant_id, name, definition, created_at""",
-            (segment_id, tenant_id, name, definition)
+            (segment_id, tenant_id, name, _json_param(definition))
         )
         row = cur.fetchone()
         conn.commit()
@@ -252,7 +256,7 @@ def create_creative(creative_id: str, tenant_id: str, name: str, metadata: Optio
                VALUES (%s, %s, %s, %s)
                ON CONFLICT (creative_id) DO UPDATE SET tenant_id=EXCLUDED.tenant_id, name=EXCLUDED.name, metadata=EXCLUDED.metadata
                RETURNING creative_id, tenant_id, name, metadata, created_at""",
-            (creative_id, tenant_id, name, metadata)
+            (creative_id, tenant_id, name, _json_param(metadata))
         )
         row = cur.fetchone()
         conn.commit()
@@ -277,7 +281,7 @@ def create_offer(offer_id: str, tenant_id: str, name: str, metadata: Optional[di
                VALUES (%s, %s, %s, %s)
                ON CONFLICT (offer_id) DO UPDATE SET tenant_id=EXCLUDED.tenant_id, name=EXCLUDED.name, metadata=EXCLUDED.metadata
                RETURNING offer_id, tenant_id, name, metadata, created_at""",
-            (offer_id, tenant_id, name, metadata)
+            (offer_id, tenant_id, name, _json_param(metadata))
         )
         row = cur.fetchone()
         conn.commit()
@@ -302,7 +306,7 @@ def upsert_integration(tenant_id: str, kind: str, config: Optional[dict]) -> dic
                VALUES (%s, %s, %s)
                ON CONFLICT (tenant_id, kind) DO UPDATE SET config=EXCLUDED.config, updated_at=NOW()
                RETURNING tenant_id, kind, config, created_at, updated_at""",
-            (tenant_id, kind, config),
+            (tenant_id, kind, _json_param(config)),
         )
         row = cur.fetchone()
         conn.commit()
@@ -349,7 +353,7 @@ def upsert_inventory_access(
                  metadata=EXCLUDED.metadata,
                  updated_at=NOW()
                RETURNING operator_id, inventory_id, inventory_owner_id, inventory_type, rights_type, allowed_channels, active, effective_from, effective_to, metadata""",
-            (operator_id, inventory_id, inventory_owner_id, inventory_type, rights_type, allowed_channels or [], active, effective_from, effective_to, metadata),
+            (operator_id, inventory_id, inventory_owner_id, inventory_type, rights_type, allowed_channels or [], active, effective_from, effective_to, _json_param(metadata)),
         )
         row = cur.fetchone()
         conn.commit()
@@ -453,7 +457,7 @@ def create_revenue_rule(
                  effective_to=EXCLUDED.effective_to,
                  metadata=EXCLUDED.metadata
                RETURNING rule_id, operator_type, inventory_type, operator_fee_pct, inventory_owner_pct, platform_fee_pct, effective_from, effective_to, metadata, created_at""",
-            (rule_id, operator_type, inventory_type, operator_fee_pct, inventory_owner_pct, platform_fee_pct, effective_from, effective_to, metadata),
+            (rule_id, operator_type, inventory_type, operator_fee_pct, inventory_owner_pct, platform_fee_pct, effective_from, effective_to, _json_param(metadata)),
         )
         row = cur.fetchone()
         conn.commit()

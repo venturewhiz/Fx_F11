@@ -1,0 +1,34 @@
+INFO:     Started server process [9598]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8002 (Press CTRL+C to quit)
+INFO:     127.0.0.1:58564 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34432 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34448 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34450 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34464 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34472 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34488 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34490 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34494 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34510 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34524 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45432 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45442 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45454 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45470 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45472 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45478 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45488 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45502 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45514 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45530 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38312 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38318 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38326 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38332 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38334 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38340 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38354 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38362 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38368 - "GET /health HTTP/1.1" 404 Not Found
