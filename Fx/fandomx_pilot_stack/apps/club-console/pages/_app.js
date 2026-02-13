@@ -1,33 +1,34 @@
-import Link from "next/link";
+import AppShell from "../lib/ui/AppShell";
+import "../lib/ui/styles.css";
+import "../styles/globals.css";
+import HelpChatbot from "../components/HelpChatbot.js";
 
 const nav = [
   ["/", "Overview"],
+  ["/login", "Login"],
+  ["/onboarding", "Onboarding"],
+  ["/control-center", "Control Center"],
   ["/campaigns", "Campaigns"],
   ["/creatives", "Creatives"],
+  ["/fml", "FML Publisher"],
   ["/integrations", "Integrations"],
   ["/rewards", "Rewards"],
   ["/settlement", "Settlement"],
-  ["/reports", "Reports"]
+  ["/reports", "Reports"],
+  ["/help", "Help"],
 ];
 
 export default function App({ Component, pageProps }) {
   return (
-    <div style={{ fontFamily: "ui-sans-serif, system-ui", background: "#f5f7fb", minHeight: "100vh" }}>
-      <header style={{ borderBottom: "1px solid #dce3ef", background: "#0d1b2a", color: "#fff" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", gap: 18 }}>
-          <strong>FandomX Club Console</strong>
-          <nav style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            {nav.map(([href, label]) => (
-              <Link key={href} href={href} style={{ color: "#c9d7ea", textDecoration: "none" }}>
-                {label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      </header>
-      <main style={{ maxWidth: 1200, margin: "0 auto", padding: 20 }}>
-        <Component {...pageProps} />
-      </main>
-    </div>
+    <AppShell
+      shellClass="fx-club-shell"
+      title="FandomX Club Ops"
+      subtitle="Fan monetization command deck"
+      nav={nav}
+      stripItems={["Matchday Ops", "•", "Live FML publishing enabled", "•", "Club revenue tracking active"]}
+      footerSlot={<HelpChatbot />}
+    >
+      <Component {...pageProps} />
+    </AppShell>
   );
 }

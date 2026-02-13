@@ -1,1 +1,6 @@
-module.exports = { output: 'standalone' };
+module.exports = {
+  output: "standalone",
+  experimental: {
+    externalDir: true,
+  },
+};

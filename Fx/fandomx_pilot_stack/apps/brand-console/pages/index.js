@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { API_GATEWAY_URL, ORCHESTRATOR_URL, jsonFetch } from "../lib/config";
-
-function cardStyle() {
-  return { background: "#fff", border: "1px solid #e4dbc6", borderRadius: 12, padding: 16 };
-}
+import { DataTable, KpiCard, KpiGrid, SectionCard } from "../lib/ui/Primitives";
+import { BarBlocks, MiniSparkline, ProgressList, RingMetric } from "../lib/ui/Widgets";
 
 export default function Home() {
   const [alloc, setAlloc] = useState([]);
@@ -29,29 +27,66 @@ export default function Home() {
     return { totalSpend, avgRoas };
   }, [alloc]);
 
+  const trendA = [22, 18, 24, 16, 28, 25, 27, 20, 29, 31, 26, 35];
+  const trendB = [12, 14, 10, 17, 13, 18, 21, 16, 23, 19, 26, 22];
+
   return (
     <div>
       <h1 style={{ marginTop: 0 }}>Overview</h1>
       <p>Cross-property campaign control with moment-aware budget and bid updates.</p>
 
-      <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginBottom: 14 }}>
-        <div style={cardStyle()}><strong>Marketplace Properties</strong><div style={{ fontSize: 24, marginTop: 8 }}>{inventory.length}</div></div>
-        <div style={cardStyle()}><strong>Current Allocated Spend</strong><div style={{ fontSize: 24, marginTop: 8 }}>₹{Math.round(summary.totalSpend)}</div></div>
-        <div style={cardStyle()}><strong>Average Expected ROAS</strong><div style={{ fontSize: 24, marginTop: 8 }}>{summary.avgRoas.toFixed(2)}</div></div>
-      </section>
+      <KpiGrid>
+        <KpiCard label="Marketplace Properties" value={inventory.length} />
+        <KpiCard label="Current Allocated Spend" value={`₹${Math.round(summary.totalSpend)}`} />
+        <KpiCard label="Average Expected ROAS" value={summary.avgRoas.toFixed(2)} />
+      </KpiGrid>
 
-      <section style={cardStyle()}>
-        <h2 style={{ marginTop: 0 }}>Top Allocations</h2>
-        <table border="1" cellPadding="8" style={{ borderCollapse: "collapse", width: "100%", borderColor: "#e4dbc6" }}>
-          <thead><tr><th>Channel</th><th>Campaign</th><th>Segment</th><th>Moment</th><th>Budget</th><th>ROAS</th></tr></thead>
-          <tbody>
-            {alloc.slice(0, 12).map((x, i) => (
-              <tr key={i}><td>{x.channel}</td><td>{x.campaign_id}</td><td>{x.segment_id}</td><td>{x.moment}</td><td>{Math.round(x.allocated_budget || 0)}</td><td>{(x.expected_roas || 0).toFixed(2)}</td></tr>
-            ))}
-            {!alloc.length && <tr><td colSpan="6">No allocations yet.</td></tr>}
-          </tbody>
-        </table>
-      </section>
+      <div className="fx-layout-2col mb-14">
+        <SectionCard title="Brand Activity Signals">
+          <div className="fx-trend-grid">
+            <div className="fx-trend-item">
+              <strong>Budget Velocity</strong>
+              <MiniSparkline points={trendA} color="#22d3ee" />
+            </div>
+            <div className="fx-trend-item">
+              <strong>Creative Lift</strong>
+              <MiniSparkline points={trendB} color="#34d399" />
+            </div>
+            <div className="fx-trend-item">
+              <strong>Moment Heat</strong>
+              <BarBlocks values={[8, 11, 7, 15, 12, 9, 14, 10, 13, 16, 11, 9]} />
+            </div>
+          </div>
+        </SectionCard>
+        <SectionCard title="Campaign Activity Mix">
+          <div className="fx-layout-2col-tight">
+            <RingMetric value={Math.round(summary.totalSpend / 240)} max={500} label="Ops Activity" color="#38bdf8" />
+            <ProgressList
+              rows={[
+                { label: "Meta Delivery", value: "110,000", pct: 78, color: "#38bdf8" },
+                { label: "DSP Delivery", value: "98,000", pct: 64, color: "#facc15" },
+                { label: "In-App Served", value: "140,000", pct: 84, color: "#34d399" },
+                { label: "Recovered", value: "67,236", pct: 48, color: "#f472b6" },
+              ]}
+            />
+          </div>
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Top Allocations">
+        <DataTable
+          headers={["Channel", "Campaign", "Segment", "Moment", "Budget", "ROAS"]}
+          rows={alloc.slice(0, 12).map((x) => ([
+            x.channel,
+            x.campaign_id,
+            x.segment_id,
+            x.moment,
+            Math.round(x.allocated_budget || 0),
+            (x.expected_roas || 0).toFixed(2),
+          ]))}
+          emptyText="No allocations yet."
+        />
+      </SectionCard>
     </div>
   );
 }

@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { API_GATEWAY_URL, ORCHESTRATOR_URL, jsonFetch } from "../lib/config";
-
-function cardStyle() {
-  return { background: "#fff", border: "1px solid #dce3ef", borderRadius: 12, padding: 16 };
-}
+import { DataTable, KpiCard, KpiGrid, SectionCard } from "../lib/ui/Primitives";
+import { BarBlocks, MiniSparkline, ProgressList, RingMetric } from "../lib/ui/Widgets";
 
 export default function Home() {
   const [alloc, setAlloc] = useState([]);
@@ -35,51 +33,82 @@ export default function Home() {
     return { spend, avgRoas, avgAcos };
   }, [alloc]);
 
+  const fanPulse = [14, 16, 13, 19, 24, 20, 23, 21, 27, 18, 22, 26];
+  const commercePulse = [8, 12, 10, 13, 9, 14, 16, 12, 18, 15, 17, 19];
+
   return (
     <div>
       <h1 style={{ marginTop: 0 }}>Overview</h1>
       <p style={{ marginTop: -6, color: "#425066" }}>Live fan-moment pulse, active allocation outputs, and tenant readiness.</p>
 
-      <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 12, marginBottom: 14 }}>
-        <div style={cardStyle()}><strong>Total Allocated Budget</strong><div style={{ fontSize: 24, marginTop: 8 }}>₹{Math.round(kpis.spend)}</div></div>
-        <div style={cardStyle()}><strong>Average Expected ROAS</strong><div style={{ fontSize: 24, marginTop: 8 }}>{kpis.avgRoas.toFixed(2)}</div></div>
-        <div style={cardStyle()}><strong>Average Expected ACOS</strong><div style={{ fontSize: 24, marginTop: 8 }}>{kpis.avgAcos.toFixed(3)}</div></div>
-        <div style={cardStyle()}><strong>Active Bids</strong><div style={{ fontSize: 24, marginTop: 8 }}>{bids.length}</div></div>
-      </section>
+      <KpiGrid>
+        <KpiCard label="Total Allocated Budget" value={`₹${Math.round(kpis.spend)}`} />
+        <KpiCard label="Average Expected ROAS" value={kpis.avgRoas.toFixed(2)} />
+        <KpiCard label="Average Expected ACOS" value={kpis.avgAcos.toFixed(3)} />
+        <KpiCard label="Active Bids" value={bids.length} />
+      </KpiGrid>
 
-      <section style={cardStyle()}>
-        <h2 style={{ marginTop: 0 }}>Tenant Readiness</h2>
-        <table border="1" cellPadding="8" style={{ borderCollapse: "collapse", width: "100%", borderColor: "#dce3ef" }}>
-          <thead>
-            <tr><th>Tenant</th><th>Type</th><th>Integrations</th><th>Created</th></tr>
-          </thead>
-          <tbody>
-            {tenants.map((t) => (
-              <tr key={t.tenant_id}>
-                <td>{t.name || t.tenant_id}</td><td>{t.type}</td><td>{Object.keys(t.integrations || {}).length}</td><td>{t.created_at || "-"}</td>
-              </tr>
-            ))}
-            {!tenants.length && <tr><td colSpan="4">No tenants created yet.</td></tr>}
-          </tbody>
-        </table>
-      </section>
+      <div className="fx-layout-2col mb-14">
+        <SectionCard title="Matchday Operating Pulse">
+          <div className="fx-trend-grid">
+            <div className="fx-trend-item">
+              <strong>Fan Emotion Velocity</strong>
+              <MiniSparkline points={fanPulse} color="#a78bfa" />
+            </div>
+            <div className="fx-trend-item">
+              <strong>Commerce Conversion Pulse</strong>
+              <MiniSparkline points={commercePulse} color="#22d3ee" />
+            </div>
+            <div className="fx-trend-item">
+              <strong>FML Momentum</strong>
+              <BarBlocks values={[9, 12, 10, 8, 14, 16, 12, 11, 17, 14, 13, 15]} />
+            </div>
+          </div>
+        </SectionCard>
+        <SectionCard title="Fan Connect Index">
+          <div className="fx-layout-2col-tight">
+            <RingMetric value={Math.round(kpis.avgRoas * 180)} max={400} label="Connect Score" color="#34d399" />
+            <ProgressList
+              rows={[
+                { label: "Hardcore Fans", value: "68%", pct: 68, color: "#38bdf8" },
+                { label: "Casual Fans", value: "44%", pct: 44, color: "#a78bfa" },
+                { label: "Merch Buyers", value: "39%", pct: 39, color: "#facc15" },
+                { label: "Ticket Intent", value: "52%", pct: 52, color: "#34d399" },
+              ]}
+            />
+          </div>
+        </SectionCard>
+      </div>
 
-      <section style={{ ...cardStyle(), marginTop: 14 }}>
-        <h2 style={{ marginTop: 0 }}>Latest Allocations</h2>
-        <table border="1" cellPadding="8" style={{ borderCollapse: "collapse", width: "100%", borderColor: "#dce3ef" }}>
-          <thead>
-            <tr><th>Channel</th><th>Campaign</th><th>Segment</th><th>Moment</th><th>Creative</th><th>Offer</th><th>Budget</th><th>ROAS</th></tr>
-          </thead>
-          <tbody>
-            {alloc.slice(0, 12).map((x, i) => (
-              <tr key={i}>
-                <td>{x.channel}</td><td>{x.campaign_id}</td><td>{x.segment_id}</td><td>{x.moment}</td><td>{x.creative_id}</td><td>{x.offer_id}</td><td>{Math.round(x.allocated_budget || 0)}</td><td>{(x.expected_roas || 0).toFixed(2)}</td>
-              </tr>
-            ))}
-            {!alloc.length && <tr><td colSpan="8">No optimization output yet. Trigger a moment event first.</td></tr>}
-          </tbody>
-        </table>
-      </section>
+      <SectionCard title="Tenant Readiness">
+        <DataTable
+          headers={["Tenant", "Type", "Integrations", "Created"]}
+          rows={tenants.map((t) => ([
+            t.name || t.tenant_id,
+            t.type,
+            Object.keys(t.integrations || {}).length,
+            t.created_at || "-",
+          ]))}
+          emptyText="No tenants created yet."
+        />
+      </SectionCard>
+
+      <SectionCard title="Latest Allocations" className="mt-14">
+        <DataTable
+          headers={["Channel", "Campaign", "Segment", "Moment", "Creative", "Offer", "Budget", "ROAS"]}
+          rows={alloc.slice(0, 12).map((x) => ([
+            x.channel,
+            x.campaign_id,
+            x.segment_id,
+            x.moment,
+            x.creative_id,
+            x.offer_id,
+            Math.round(x.allocated_budget || 0),
+            (x.expected_roas || 0).toFixed(2),
+          ]))}
+          emptyText="No optimization output yet. Trigger a moment event first."
+        />
+      </SectionCard>
     </div>
   );
 }
