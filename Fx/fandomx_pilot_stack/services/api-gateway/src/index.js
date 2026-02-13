@@ -341,6 +341,40 @@ app.get("/finance/settlement/export", async (req, res) => {
 
 app.listen(8080, () => console.log("api-gateway on :8080"));
 
+
+const INTEGRATION_CATALOG = [
+  { plugin_id: "fanatics_commerce", kind: "ecommerce", provider: "fanatics", label: "Fanatics Commerce", capabilities: ["extract_products", "sync_catalog", "offers"], endpoint_env: "FANATICS_BASE_URL" },
+  { plugin_id: "amazon_commerce", kind: "ecommerce", provider: "amazon", label: "Amazon Commerce", capabilities: ["extract_products", "sync_catalog"], endpoint_env: "AMAZON_BASE_URL" },
+  { plugin_id: "shopify_commerce", kind: "ecommerce", provider: "shopify", label: "Shopify Commerce", capabilities: ["extract_products", "sync_catalog", "offers"], endpoint_env: "SHOPIFY_BASE_URL" },
+  { plugin_id: "fanatics_ads", kind: "dsp", provider: "fanatics_ads", label: "Fanatics Ads", capabilities: ["activate_campaign", "optimize_bids"], endpoint_env: "FANATICS_ADS_BASE_URL" },
+  { plugin_id: "amazon_ads", kind: "dsp", provider: "amazon_ads", label: "Amazon Ads", capabilities: ["activate_campaign", "optimize_bids"], endpoint_env: "AMAZON_ADS_BASE_URL" },
+  { plugin_id: "thetradedesk", kind: "dsp", provider: "thetradedesk", label: "The Trade Desk", capabilities: ["activate_campaign", "optimize_bids", "audience_sync"], endpoint_env: "TTD_BASE_URL" },
+  { plugin_id: "google_dv360", kind: "dsp", provider: "dv360", label: "Google DV360", capabilities: ["activate_campaign", "optimize_bids", "audience_sync"], endpoint_env: "DV360_BASE_URL" },
+  { plugin_id: "pubmatic", kind: "ssp", provider: "pubmatic", label: "PubMatic", capabilities: ["inventory_activation", "yield_optimization"], endpoint_env: "PUBMATIC_BASE_URL" },
+  { plugin_id: "gam", kind: "gam", provider: "google_ad_manager", label: "Google Ad Manager", capabilities: ["inventory_activation", "line_item_delivery"], endpoint_env: "GAM_BASE_URL" },
+  { plugin_id: "ad_exchange", kind: "ad_exchange", provider: "adx_generic", label: "Ad Exchange", capabilities: ["inventory_activation"], endpoint_env: "ADX_BASE_URL" },
+  { plugin_id: "facebook_ads", kind: "meta", provider: "meta", label: "Facebook Ads", capabilities: ["activate_campaign", "social_distribution"], endpoint_env: "META_BASE_URL" },
+  { plugin_id: "instagram_ads", kind: "instagram", provider: "meta_instagram", label: "Instagram Ads", capabilities: ["activate_campaign", "social_distribution"], endpoint_env: "META_BASE_URL" },
+  { plugin_id: "x_ads", kind: "x", provider: "x_ads", label: "X Ads", capabilities: ["activate_campaign", "social_distribution"], endpoint_env: "X_BASE_URL" },
+  { plugin_id: "youtube_ads", kind: "youtube", provider: "google_ads", label: "YouTube Ads", capabilities: ["activate_campaign", "video_distribution"], endpoint_env: "YOUTUBE_BASE_URL" },
+  { plugin_id: "ticketmaster", kind: "ticketing", provider: "ticketmaster", label: "Ticketmaster", capabilities: ["inventory_sync", "conversion_tracking"], endpoint_env: "TICKETING_BASE_URL" },
+  { plugin_id: "stats_perform", kind: "sports_events", provider: "stats_perform", label: "Stats Perform", capabilities: ["live_events", "match_context"], endpoint_env: "SPORTS_EVENTS_BASE_URL" },
+  { plugin_id: "espn_data", kind: "sports_events", provider: "espn", label: "ESPN Data Feed", capabilities: ["live_events", "news_signals"], endpoint_env: "ESPN_BASE_URL" },
+  { plugin_id: "dazn_stream", kind: "live_match", provider: "dazn", label: "DAZN Streaming", capabilities: ["live_match_markers", "stream_context"], endpoint_env: "DAZN_BASE_URL" },
+  { plugin_id: "hubo_stream", kind: "live_match", provider: "hubo", label: "Hubo Streaming", capabilities: ["live_match_markers", "stream_context"], endpoint_env: "HUBO_BASE_URL" },
+  { plugin_id: "salesforce_cdp", kind: "rt_cdp", provider: "salesforce", label: "Salesforce CDP", capabilities: ["audience_sync", "profile_enrichment"], endpoint_env: "SALESFORCE_CDP_BASE_URL" },
+  { plugin_id: "adobe_cdp", kind: "rt_cdp", provider: "adobe", label: "Adobe RT-CDP", capabilities: ["audience_sync", "profile_enrichment"], endpoint_env: "ADOBE_CDP_BASE_URL" },
+  { plugin_id: "snowflake_analytics", kind: "analytics", provider: "snowflake", label: "Snowflake Analytics", capabilities: ["warehouse_export", "reporting"], endpoint_env: "SNOWFLAKE_BASE_URL" },
+  { plugin_id: "databricks_analytics", kind: "analytics", provider: "databricks", label: "Databricks Analytics", capabilities: ["lakehouse_export", "reporting"], endpoint_env: "DATABRICKS_BASE_URL" },
+  { plugin_id: "nielsen_reports", kind: "analytics", provider: "nielsen", label: "Nielsen Reports", capabilities: ["audience_measurement", "reach_reporting"], endpoint_env: "NIELSEN_BASE_URL" },
+  { plugin_id: "stripe_payments", kind: "payments", provider: "stripe", label: "Stripe Payments", capabilities: ["checkout", "subscription", "payout_ledger"], endpoint_env: "STRIPE_BASE_URL" },
+  { plugin_id: "aws_hosting", kind: "infra", provider: "aws", label: "AWS Hosting", capabilities: ["runtime_hosting", "storage", "messaging"], endpoint_env: "AWS_BASE_URL" },
+  { plugin_id: "nvidia_modeling", kind: "modeling", provider: "nvidia", label: "NVIDIA Modeling", capabilities: ["gpu_training", "inference"], endpoint_env: "NVIDIA_BASE_URL" },
+  { plugin_id: "social_listening", kind: "social_listening", provider: "brandwatch", label: "Social Listening", capabilities: ["sentiment", "trend_detection"], endpoint_env: "SOCIAL_BASE_URL" },
+  { plugin_id: "dtc", kind: "dtc", provider: "club_app_web", label: "DTC App/Website", capabilities: ["onsite_delivery", "first_party_tracking"], endpoint_env: "DTC_BASE_URL" },
+  { plugin_id: "inapp", kind: "inapp", provider: "native", label: "In-App Inventory", capabilities: ["onsite_delivery", "push_offers"], endpoint_env: "" },
+];
+
 app.post("/tenants/:tenant_id/onboarding/plugins", async (req, res) => {
   try {
     const tenantId = req.params.tenant_id;
