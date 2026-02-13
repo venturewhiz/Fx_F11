@@ -111,7 +111,7 @@ export default function BrandOnboarding() {
       {msg && <p style={{ color: msg.startsWith("Error") ? "#b71c1c" : "#1b5e20" }}>{msg}</p>}
       {tenantId && <p><strong>tenant_id:</strong> {tenantId}</p>}
 
-      <form onSubmit={submit} style={{ background: "#fffdf7", border: "1px solid #d9cfba", borderRadius: 12, padding: 14 }}>
+      <form onSubmit={submit} style={{ background: "#fffdf7", border: "1px solid #d9cfba", borderRadius: 12, padding: 14, color: "#0f172a" }}>
         <p><input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Display Name" style={{ width: "100%", padding: 8 }} /></p>
         <p><input required value={form.brand_name} onChange={(e) => setForm({ ...form, brand_name: e.target.value })} placeholder="Legal Brand Name" style={{ width: "100%", padding: 8 }} /></p>
         <p><input value={form.location_city} onChange={(e) => setForm({ ...form, location_city: e.target.value })} placeholder="City" style={{ width: "100%", padding: 8 }} /></p>
@@ -123,10 +123,10 @@ export default function BrandOnboarding() {
         <p><input value={form.preferred_segments} onChange={(e) => setForm({ ...form, preferred_segments: e.target.value })} placeholder="Preferred Fan Segments" style={{ width: "100%", padding: 8 }} /></p>
         <p><input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="Website" style={{ width: "100%", padding: 8 }} /></p>
 
-        <h3>Plugin Placeholders + Credential Refs</h3>
+        <h3 style={{ color: "#0f172a" }}>Plugin Placeholders + Credential Refs</h3>
         {BRAND_PLUGIN_PRESETS.map((plugin) => (
           <div key={plugin.plugin_id} style={{ border: "1px solid #d9cfba", borderRadius: 8, padding: 10, marginBottom: 8 }}>
-            <label>
+            <label style={{ color: "#0f172a", fontWeight: 600 }}>
               <input
                 type="checkbox"
                 checked={Boolean(selectedPlugins[plugin.plugin_id])}

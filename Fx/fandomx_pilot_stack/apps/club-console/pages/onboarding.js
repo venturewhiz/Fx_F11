@@ -117,7 +117,7 @@ export default function ClubOnboarding() {
       {msg && <p style={{ color: msg.startsWith("Error") ? "#b71c1c" : "#1b5e20" }}>{msg}</p>}
       {tenantId && <p><strong>tenant_id:</strong> {tenantId}</p>}
 
-      <form onSubmit={submit} style={{ background: "#f8fbff", border: "1px solid #c8d8ec", borderRadius: 12, padding: 14 }}>
+      <form onSubmit={submit} style={{ background: "#f8fbff", border: "1px solid #c8d8ec", borderRadius: 12, padding: 14, color: "#0f172a" }}>
         <p><input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Display Name" style={{ width: "100%", padding: 8 }} /></p>
         <p><input required value={form.club_name} onChange={(e) => setForm({ ...form, club_name: e.target.value })} placeholder="Legal Club Name" style={{ width: "100%", padding: 8 }} /></p>
         <p><input value={form.location_city} onChange={(e) => setForm({ ...form, location_city: e.target.value })} placeholder="City" style={{ width: "100%", padding: 8 }} /></p>
@@ -129,10 +129,10 @@ export default function ClubOnboarding() {
         <p><input value={form.loyalty_program} onChange={(e) => setForm({ ...form, loyalty_program: e.target.value })} placeholder="Loyalty Program Tier" style={{ width: "100%", padding: 8 }} /></p>
         <p><input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="Website" style={{ width: "100%", padding: 8 }} /></p>
 
-        <h3>Plugin Placeholders + Credential Refs</h3>
+        <h3 style={{ color: "#0f172a" }}>Plugin Placeholders + Credential Refs</h3>
         {CLUB_PLUGIN_PRESETS.map((plugin) => (
           <div key={plugin.plugin_id} style={{ border: "1px solid #c8d8ec", borderRadius: 8, padding: 10, marginBottom: 8 }}>
-            <label>
+            <label style={{ color: "#0f172a", fontWeight: 600 }}>
               <input
                 type="checkbox"
                 checked={Boolean(selectedPlugins[plugin.plugin_id])}
