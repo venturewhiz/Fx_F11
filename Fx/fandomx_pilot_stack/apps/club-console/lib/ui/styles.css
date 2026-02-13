@@ -341,3 +341,13 @@ button:hover { filter: brightness(1.08); }
   border-color: rgba(255, 255, 255, 0.18) !important;
 }
 
+
+
+/* Final sidebar color lock */
+.fx-sidebar {
+  background: #1C2337 !important;
+}
+.fx-brandmark {
+  background: #1C2337 !important;
+  border-color: #2f3956 !important;
+}
