@@ -2,29 +2,35 @@ import { useState } from "react";
 import { API_GATEWAY_URL, jsonFetch } from "../lib/config";
 
 const CLUB_PLUGIN_PRESETS = [
-  { plugin_id: "facebook_ads", label: "Facebook Ads", account_id: "meta_page_id" },
-  { plugin_id: "instagram_ads", label: "Instagram Ads", account_id: "instagram_business_id" },
-  { plugin_id: "youtube_ads", label: "YouTube Ads", account_id: "youtube_channel_id" },
-  { plugin_id: "x_ads", label: "X Ads", account_id: "x_account_id" },
-  { plugin_id: "gam", label: "Google Ad Manager", account_id: "gam_network_code" },
-  { plugin_id: "ticketmaster", label: "Ticketmaster", account_id: "ticketing_partner_id" },
-  { plugin_id: "shopify_commerce", label: "Shopify Commerce", account_id: "shopify_store" },
-  { plugin_id: "amazon_commerce", label: "Amazon Commerce", account_id: "amazon_seller_id" },
-  { plugin_id: "fanatics_commerce", label: "Fanatics Commerce", account_id: "fanatics_store_id" },
-  { plugin_id: "stats_perform", label: "Stats Perform", api_key_ref: "SPORTS_EVENTS_API_KEY" },
-  { plugin_id: "social_listening", label: "Social Listening", api_key_ref: "SOCIAL_API_KEY" },
-  { plugin_id: "salesforce_cdp", label: "Salesforce CDP", account_id: "sfmc_business_unit" },
-  { plugin_id: "adobe_cdp", label: "Adobe RT-CDP", account_id: "adobe_org_id" },
+  { plugin_id: "facebook_ads", label: "Facebook Ads", fields: ["account_id", "api_key_ref", "base_url"] },
+  { plugin_id: "instagram_ads", label: "Instagram Ads", fields: ["account_id", "api_key_ref", "base_url"] },
+  { plugin_id: "youtube_ads", label: "YouTube Ads", fields: ["account_id", "api_key_ref", "base_url"] },
+  { plugin_id: "x_ads", label: "X Ads", fields: ["account_id", "api_key_ref", "base_url"] },
+  { plugin_id: "gam", label: "Google Ad Manager", fields: ["account_id", "api_key_ref", "base_url"] },
+  { plugin_id: "ticketmaster", label: "Ticketmaster", fields: ["account_id", "api_key_ref", "base_url"] },
+  { plugin_id: "shopify_commerce", label: "Shopify Commerce", fields: ["account_id", "api_key_ref", "base_url"] },
+  { plugin_id: "amazon_commerce", label: "Amazon Commerce", fields: ["account_id", "api_key_ref", "base_url"] },
+  { plugin_id: "fanatics_commerce", label: "Fanatics Commerce", fields: ["account_id", "api_key_ref", "base_url"] },
+  { plugin_id: "stats_perform", label: "Stats Perform", fields: ["api_key_ref", "base_url"] },
+  { plugin_id: "social_listening", label: "Social Listening", fields: ["api_key_ref", "base_url"] },
+  { plugin_id: "salesforce_cdp", label: "Salesforce CDP", fields: ["account_id", "api_key_ref", "base_url"] },
+  { plugin_id: "adobe_cdp", label: "Adobe RT-CDP", fields: ["account_id", "api_key_ref", "base_url"] },
 ];
 
-function asPluginItems(selected) {
+const initialPluginValues = CLUB_PLUGIN_PRESETS.reduce((m, p) => {
+  m[p.plugin_id] = { account_id: "", api_key_ref: "", base_url: "" };
+  return m;
+}, {});
+
+function asPluginItems(selected, values) {
   return CLUB_PLUGIN_PRESETS
     .filter((x) => selected[x.plugin_id])
     .map((x) => ({
       plugin_id: x.plugin_id,
       mode: "placeholder",
-      account_id: x.account_id || "",
-      api_key_ref: x.api_key_ref || "",
+      account_id: values?.[x.plugin_id]?.account_id || "",
+      api_key_ref: values?.[x.plugin_id]?.api_key_ref || "",
+      base_url: values?.[x.plugin_id]?.base_url || "",
       extra: { onboarding_source: "club_onboarding" },
     }));
 }
@@ -42,6 +48,7 @@ export default function ClubOnboarding() {
     fan_app_url: "",
     loyalty_program: "standard",
   });
+
   const [selectedPlugins, setSelectedPlugins] = useState({
     facebook_ads: true,
     instagram_ads: true,
@@ -57,6 +64,8 @@ export default function ClubOnboarding() {
     salesforce_cdp: true,
     adobe_cdp: false,
   });
+
+  const [pluginValues, setPluginValues] = useState(initialPluginValues);
   const [msg, setMsg] = useState("");
   const [tenantId, setTenantId] = useState("");
 
@@ -72,7 +81,7 @@ export default function ClubOnboarding() {
       const nextTenantId = out?.tenant_id || "";
       setTenantId(nextTenantId);
 
-      const pluginItems = asPluginItems(selectedPlugins);
+      const pluginItems = asPluginItems(selectedPlugins, pluginValues);
       if (nextTenantId && pluginItems.length) {
         await jsonFetch(`${API_GATEWAY_URL}/tenants/${nextTenantId}/onboarding/plugins`, {
           method: "POST",
@@ -91,10 +100,20 @@ export default function ClubOnboarding() {
     setSelectedPlugins((prev) => ({ ...prev, [pluginId]: !prev[pluginId] }));
   }
 
+  function setPluginField(pluginId, field, value) {
+    setPluginValues((prev) => ({
+      ...prev,
+      [pluginId]: {
+        ...(prev[pluginId] || { account_id: "", api_key_ref: "", base_url: "" }),
+        [field]: value,
+      },
+    }));
+  }
+
   return (
     <div>
       <h1 style={{ marginTop: 0 }}>Club Registration + Plugin Setup</h1>
-      <p>Register club profile and connect all core placeholders for fan monetization operations.</p>
+      <p>Register club profile and store credential refs for all connected placeholder plugins.</p>
       {msg && <p style={{ color: msg.startsWith("Error") ? "#b71c1c" : "#1b5e20" }}>{msg}</p>}
       {tenantId && <p><strong>tenant_id:</strong> {tenantId}</p>}
 
@@ -110,10 +129,10 @@ export default function ClubOnboarding() {
         <p><input value={form.loyalty_program} onChange={(e) => setForm({ ...form, loyalty_program: e.target.value })} placeholder="Loyalty Program Tier" style={{ width: "100%", padding: 8 }} /></p>
         <p><input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="Website" style={{ width: "100%", padding: 8 }} /></p>
 
-        <h3>Plugin Placeholders To Connect</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 8, marginBottom: 12 }}>
-          {CLUB_PLUGIN_PRESETS.map((plugin) => (
-            <label key={plugin.plugin_id} style={{ border: "1px solid #c8d8ec", borderRadius: 8, padding: 8 }}>
+        <h3>Plugin Placeholders + Credential Refs</h3>
+        {CLUB_PLUGIN_PRESETS.map((plugin) => (
+          <div key={plugin.plugin_id} style={{ border: "1px solid #c8d8ec", borderRadius: 8, padding: 10, marginBottom: 8 }}>
+            <label>
               <input
                 type="checkbox"
                 checked={Boolean(selectedPlugins[plugin.plugin_id])}
@@ -122,8 +141,36 @@ export default function ClubOnboarding() {
               />
               {plugin.label}
             </label>
-          ))}
-        </div>
+            {selectedPlugins[plugin.plugin_id] && (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 8, marginTop: 8 }}>
+                {plugin.fields.includes("account_id") && (
+                  <input
+                    value={pluginValues[plugin.plugin_id]?.account_id || ""}
+                    onChange={(e) => setPluginField(plugin.plugin_id, "account_id", e.target.value)}
+                    placeholder="Account ID"
+                    style={{ padding: 8 }}
+                  />
+                )}
+                {plugin.fields.includes("api_key_ref") && (
+                  <input
+                    value={pluginValues[plugin.plugin_id]?.api_key_ref || ""}
+                    onChange={(e) => setPluginField(plugin.plugin_id, "api_key_ref", e.target.value)}
+                    placeholder="API Key Ref (Secrets Manager key)"
+                    style={{ padding: 8 }}
+                  />
+                )}
+                {plugin.fields.includes("base_url") && (
+                  <input
+                    value={pluginValues[plugin.plugin_id]?.base_url || ""}
+                    onChange={(e) => setPluginField(plugin.plugin_id, "base_url", e.target.value)}
+                    placeholder="Base URL (optional now)"
+                    style={{ padding: 8 }}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        ))}
 
         <button type="submit">Register Club + Connect Plugins</button>
       </form>
