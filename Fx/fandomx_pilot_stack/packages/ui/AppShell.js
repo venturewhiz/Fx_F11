@@ -2,20 +2,25 @@ import Link from "next/link";
 
 export default function AppShell({
   shellClass = "",
-  title = "Ops",
+  title = "OPS",
   subtitle = "",
   stripItems = [],
   nav = [],
   children,
   footerSlot = null,
+  overlaySize = 220,
   logoSrc = "/fandomx-logo.png",
+  orgLogoSrc = "/org-logo.png",
 }) {
   return (
     <div className={`fx-shell ${shellClass}`.trim()}>
       <div className="fx-app-grid">
         <aside className="fx-sidebar">
-          <div className="fx-brandmark" aria-label="FandomX logo">
-            <img src={logoSrc} alt="FandomX" className="fx-brandmark-img" />
+          <div className="fx-brandmark" aria-label="FandomX logo with org overlay">
+            <img src={logoSrc} alt="FandomX" className="fx-logo-main" />
+            <div className="fx-org-badge">
+              <img src={orgLogoSrc} alt="Org logo" className="fx-logo-org" />
+            </div>
           </div>
 
           <div className="fx-sidebar-head fx-sidebar-head-compact">

@@ -22,10 +22,11 @@ export default function App({ Component, pageProps }) {
   return (
     <AppShell
       shellClass="fx-club-shell"
-      title="Club Ops"
+      title="CLUB OPS"
       subtitle=""
       nav={nav}
       stripItems={["Matchday Ops", "•", "Live FML publishing enabled", "•", "Club revenue tracking active"]}
+      orgLogoSrc="/club-badge.svg"
       footerSlot={<HelpChatbot />}
     >
       <Component {...pageProps} />

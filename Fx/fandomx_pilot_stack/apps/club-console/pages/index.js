@@ -3,6 +3,8 @@ import { API_GATEWAY_URL, ORCHESTRATOR_URL, jsonFetch } from "../lib/config";
 import { DataTable, KpiCard, KpiGrid, SectionCard } from "../lib/ui/Primitives";
 import { BarBlocks, MiniSparkline, ProgressList, RingMetric } from "../lib/ui/Widgets";
 
+const fmtINR = (n) => new Intl.NumberFormat("en-IN").format(Math.round(n || 0));
+
 const DEMO_ALLOC = [
   { channel: "meta", campaign_id: "camp_1", segment_id: "seg_hardcore", moment: "team_success", creative_id: "cr_upbeat", offer_id: "off_merch", allocated_budget: 30000, expected_roas: 1.93, expected_acos: 0.0 },
   { channel: "meta", campaign_id: "camp_1", segment_id: "seg_hardcore", moment: "team_success", creative_id: "cr_consoling", offer_id: "off_merch", allocated_budget: 30000, expected_roas: 2.06, expected_acos: 0.0 },
@@ -66,12 +68,12 @@ export default function Home() {
       <p style={{ marginTop: -6, color: "#425066" }}>Inventory yield, rights control, and fan monetization at match speed.</p>
 
       <KpiGrid>
-        <KpiCard label="Today Revenue" value={`₹${todayRevenue.toLocaleString()}`} />
-        <KpiCard label="Matchday Revenue" value={`₹${matchdayRevenue.toLocaleString()}`} />
-        <KpiCard label="Sponsor Revenue" value={`₹${sponsorRevenue.toLocaleString()}`} />
+        <KpiCard label="Today Revenue" value={`₹${fmtINR(todayRevenue)}`} />
+        <KpiCard label="Matchday Revenue" value={`₹${fmtINR(matchdayRevenue)}`} />
+        <KpiCard label="Sponsor Revenue" value={`₹${fmtINR(sponsorRevenue)}`} />
         <KpiCard label="Yield (eCPM)" value={(avgRoas * 84).toFixed(1)} />
         <KpiCard label="Fill Rate" value={`${Math.min(98, 62 + Math.round(avgRoas * 8))}%`} />
-        <KpiCard label="Rights Layer Revenue" value={`₹${rightsRevenue.toLocaleString()}`} />
+        <KpiCard label="Rights Layer Revenue" value={`₹${fmtINR(rightsRevenue)}`} />
       </KpiGrid>
 
       <div className="fx-action-row mb-14">

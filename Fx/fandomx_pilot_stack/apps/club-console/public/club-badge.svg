@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="12" fill="#ffffff"/>
+  <path d="M64 10 L108 20 L100 76 Q64 112 28 76 L20 20 Z" fill="#d8e8f8" stroke="#17375e" stroke-width="3"/>
+  <path d="M64 10 L108 20 L100 50 L28 50 L20 20 Z" fill="#9fc3e7"/>
+  <text x="64" y="34" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="#17375e">SYDNEY FC</text>
+</svg>

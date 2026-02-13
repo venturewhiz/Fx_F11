@@ -23,10 +23,11 @@ export default function App({ Component, pageProps }) {
   return (
     <AppShell
       shellClass="fx-brand-shell"
-      title="Brand Ops"
+      title="BRAND OPS"
       subtitle=""
       nav={nav}
       stripItems={["Live Ops", "•", "Sydney FC vs Rival Club", "•", "Moment-sensitive budget engine active"]}
+      orgLogoSrc="/brand-badge.svg"
       footerSlot={<HelpChatbot />}
     >
       <Component {...pageProps} />

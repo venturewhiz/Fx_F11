@@ -3,6 +3,8 @@ import { API_GATEWAY_URL, ORCHESTRATOR_URL, jsonFetch } from "../lib/config";
 import { DataTable, KpiCard, KpiGrid, SectionCard } from "../lib/ui/Primitives";
 import { BarBlocks, MiniSparkline, ProgressList, RingMetric } from "../lib/ui/Widgets";
 
+const fmtINR = (n) => new Intl.NumberFormat("en-IN").format(Math.round(n || 0));
+
 const DEMO_ALLOC = [
   { channel: "meta", campaign_id: "camp_1", segment_id: "seg_hardcore", moment: "team_success", allocated_budget: 30000, expected_roas: 1.93 },
   { channel: "meta", campaign_id: "camp_1", segment_id: "seg_hardcore", moment: "team_success", allocated_budget: 30000, expected_roas: 2.06 },
@@ -64,7 +66,7 @@ export default function Home() {
 
       <KpiGrid>
         <KpiCard label="Live Spend" value={`₹${Math.round(totalSpend)}`} />
-        <KpiCard label="Revenue Attributed" value={`₹${revenueAttributed.toLocaleString()}`} />
+        <KpiCard label="Revenue Attributed" value={`₹${fmtINR(revenueAttributed)}`} />
         <KpiCard label="ROAS" value={avgRoas.toFixed(2)} />
         <KpiCard label="LTV-Weighted ROAS" value={ltvRoas.toFixed(2)} />
         <KpiCard label="Active Match Triggers" value={rows.length} />
