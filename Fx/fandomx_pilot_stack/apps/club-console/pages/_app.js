@@ -22,8 +22,8 @@ export default function App({ Component, pageProps }) {
   return (
     <AppShell
       shellClass="fx-club-shell"
-      title="FandomX Club Ops"
-      subtitle="Fan monetization command deck"
+      title="Club Ops"
+      subtitle=""
       nav={nav}
       stripItems={["Matchday Ops", "•", "Live FML publishing enabled", "•", "Club revenue tracking active"]}
       footerSlot={<HelpChatbot />}

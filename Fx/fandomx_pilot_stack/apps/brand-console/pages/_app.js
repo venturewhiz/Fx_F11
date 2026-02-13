@@ -23,8 +23,8 @@ export default function App({ Component, pageProps }) {
   return (
     <AppShell
       shellClass="fx-brand-shell"
-      title="FandomX Brand Ops"
-      subtitle="Campaign command center"
+      title="Brand Ops"
+      subtitle=""
       nav={nav}
       stripItems={["Live Ops", "•", "Sydney FC vs Rival Club", "•", "Moment-sensitive budget engine active"]}
       footerSlot={<HelpChatbot />}

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function AppShell({
   shellClass = "",
-  title = "FandomX",
+  title = "Ops",
   subtitle = "",
   stripItems = [],
   nav = [],
@@ -14,10 +14,15 @@ export default function AppShell({
     <div className={`fx-shell ${shellClass}`.trim()}>
       <div className="fx-app-grid">
         <aside className="fx-sidebar">
-          <div className="fx-sidebar-head">
-            <strong>{title}</strong>
-            <span>{subtitle}</span>
+          <div className="fx-brandmark" aria-label="FandomX logo">
+            <img src={logoSrc} alt="FandomX" className="fx-brandmark-img" />
           </div>
+
+          <div className="fx-sidebar-head fx-sidebar-head-compact">
+            <strong>{title}</strong>
+            {subtitle ? <span>{subtitle}</span> : null}
+          </div>
+
           <nav className="fx-sidebar-nav">
             {nav.map(([href, label]) => (
               <Link key={href} href={href} className="fx-sidebar-link">
@@ -25,6 +30,7 @@ export default function AppShell({
               </Link>
             ))}
           </nav>
+
           <div className="fx-sidebar-help">
             <div>Need setup help?</div>
             <small>Run onboarding and connect plugins first.</small>
@@ -43,14 +49,14 @@ export default function AppShell({
               <span className="fx-pill">Prod</span>
             </div>
           </header>
+
           <div className="fx-match-strip">
             {stripItems.map((item, idx) => (
               <span key={`${item}-${idx}`}>{item}</span>
             ))}
           </div>
-          <main className="fx-main">
-            {children}
-          </main>
+
+          <main className="fx-main">{children}</main>
           {footerSlot}
         </div>
       </div>
