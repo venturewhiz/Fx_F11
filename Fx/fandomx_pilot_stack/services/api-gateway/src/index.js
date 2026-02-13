@@ -340,3 +340,37 @@ app.get("/finance/settlement/export", async (req, res) => {
 });
 
 app.listen(8080, () => console.log("api-gateway on :8080"));
+
+app.post("/tenants/:tenant_id/onboarding/plugins", async (req, res) => {
+  try {
+    const tenantId = req.params.tenant_id;
+    const items = Array.isArray(req.body?.items) ? req.body.items : [];
+    if (!items.length) return res.json({ status: "ok", connected: [] });
+
+    const connected = [];
+    for (const item of items) {
+      const pluginId = item?.plugin_id;
+      if (!pluginId) continue;
+
+      const plugin = INTEGRATION_CATALOG.find((p) => p.plugin_id === pluginId);
+      if (!plugin) continue;
+
+      const config = {
+        mode: item?.mode || "placeholder",
+        provider: plugin.provider,
+        plugin_id: plugin.plugin_id,
+        base_url: item?.base_url || "",
+        account_id: item?.account_id || "",
+        api_key_ref: item?.api_key_ref || "",
+        ...(item?.extra || {}),
+      };
+
+      await adminPost("/integrations", { tenant_id: tenantId, kind: plugin.kind, config });
+      connected.push({ plugin_id: plugin.plugin_id, kind: plugin.kind, provider: plugin.provider, mode: config.mode });
+    }
+
+    return res.json({ status: "ok", tenant_id: tenantId, connected });
+  } catch (e) {
+    return res.status(500).json({ error: String(e.message || e) });
+  }
+});
