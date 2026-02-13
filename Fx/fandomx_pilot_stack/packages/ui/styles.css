@@ -291,3 +291,11 @@ button:hover { filter: brightness(1.08); }
     position: static;
   }
 }
+
+
+.fx-brandmark-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+}

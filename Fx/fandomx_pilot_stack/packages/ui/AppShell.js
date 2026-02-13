@@ -8,6 +8,7 @@ export default function AppShell({
   nav = [],
   children,
   footerSlot = null,
+  logoSrc = "/fandomx-logo.png",
 }) {
   return (
     <div className={`fx-shell ${shellClass}`.trim()}>
