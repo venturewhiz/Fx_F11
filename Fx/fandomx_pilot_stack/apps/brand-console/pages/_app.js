@@ -8,6 +8,7 @@ const nav = [
   ["/", "Overview"],
   ["/login", "Login"],
   ["/onboarding", "Onboarding"],
+  ["/fml", "FML"],
   ["/control-center", "Control Center"],
   ["/marketplace", "Marketplace"],
   ["/plugins", "Plugins"],
