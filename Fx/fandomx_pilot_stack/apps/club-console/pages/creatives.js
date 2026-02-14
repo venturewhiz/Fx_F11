@@ -7,6 +7,7 @@ export default function Creatives() {
   const [tenantId, setTenantId] = useState(defaultTenant);
   const [creatives, setCreatives] = useState([]);
   const [offers, setOffers] = useState([]);
+  const [toneFilter, setToneFilter] = useState("all");
   const [creativeForm, setCreativeForm] = useState({ name: "", tone: "upbeat", moment_fit: "team_success", fatigue_limit: 6 });
   const [offerForm, setOfferForm] = useState({ name: "Merch 15% Off", type: "merch", code: "M15" });
   const [msg, setMsg] = useState("");
@@ -41,6 +42,8 @@ export default function Creatives() {
     setOfferForm({ ...offerForm, name: "" });
     load();
   }
+
+  const filteredCreatives = creatives.filter((c) => toneFilter === "all" || c.tone === toneFilter);
 
   return (
     <div>
@@ -82,11 +85,12 @@ export default function Creatives() {
       </div>
 
       <h2>Creative Library</h2>
+      <p>Tone Filter: <select value={toneFilter} onChange={(e) => setToneFilter(e.target.value)}><option value="all">All</option><option value="upbeat">upbeat</option><option value="consoling">consoling</option><option value="urgent">urgent</option></select></p>
       <table border="1" cellPadding="8" style={{ borderCollapse: "collapse", width: "100%", borderColor: "#dce3ef", background: "#fff" }}>
         <thead><tr><th>ID</th><th>Name</th><th>Tone</th><th>Moment Fit</th><th>Fatigue Limit</th></tr></thead>
         <tbody>
-          {creatives.map((c) => <tr key={c.creative_id}><td>{c.creative_id}</td><td>{c.name}</td><td>{c.tone}</td><td>{c.moment_fit}</td><td>{c.fatigue_limit}</td></tr>)}
-          {!creatives.length && <tr><td colSpan="5">No creatives</td></tr>}
+          {filteredCreatives.map((c) => <tr key={c.creative_id}><td>{c.creative_id}</td><td>{c.name}</td><td>{c.tone}</td><td>{c.moment_fit}</td><td>{c.fatigue_limit}</td></tr>)}
+          {!filteredCreatives.length && <tr><td colSpan="5">No creatives</td></tr>}
         </tbody>
       </table>
 
