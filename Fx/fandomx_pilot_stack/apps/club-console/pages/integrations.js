@@ -24,6 +24,21 @@ export default function Integrations() {
 
   useEffect(() => { load(); }, [tenantId]);
 
+  async function testConnection() {
+    try {
+      const parsed = JSON.parse(config);
+      const base = parsed.base_url || parsed.url || "";
+      if (!base) {
+        setMsg("No base_url/url in config to test");
+        return;
+      }
+      const r = await fetch(base, { method: "GET" });
+      setMsg(`Test ${r.ok ? "OK" : "FAILED"}: ${r.status}`);
+    } catch (err) {
+      setMsg(`Test Error: ${String(err.message || err)}`);
+    }
+  }
+
   async function connect(e) {
     e.preventDefault();
     try {
@@ -60,7 +75,7 @@ export default function Integrations() {
           </select>
         </p>
         <p><textarea rows={5} value={config} onChange={(e) => setConfig(e.target.value)} style={{ width: "100%", padding: 8, fontFamily: "monospace" }} /></p>
-        <button type="submit">Connect Integration</button>
+        <button type="submit">Connect Integration</button> <button type="button" onClick={testConnection}>Test Connection</button>
       </form>
 
       <h2>Connected Integrations</h2>
