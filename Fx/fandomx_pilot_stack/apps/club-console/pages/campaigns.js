@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { API_GATEWAY_URL, jsonFetch } from "../lib/config";
 
 export default function Campaigns() {
-  const [tenantId, setTenantId] = useState("brand_demo");
+  const [tenantId, setTenantId] = useState("club_demo");
   const [campaigns, setCampaigns] = useState([]);
   const [form, setForm] = useState({ name: "", objective: "conversions", budget: 100000, property: "club_demo", channel: "meta" });
   const [msg, setMsg] = useState("");
