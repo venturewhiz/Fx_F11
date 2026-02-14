@@ -14,6 +14,7 @@ app.use((req, res, next) => {
 
 const OPTIMIZER_ADMIN_URL = process.env.OPTIMIZER_ADMIN_URL || "http://optimizer:8000/admin";
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "";
+const BRAND_INVITES = new Map();
 
 function actorScope(req) {
   const actorType = (req.headers["x-actor-type"] || "anonymous").toString().trim();
@@ -73,12 +74,18 @@ app.post("/invites/brand", async (req, res) => {
     const channel = (req.body?.channel || "email").trim();
     const invite_url = `/onboarding?kind=brand&club_tenant_id=${encodeURIComponent(club_tenant_id)}&invite_id=${encodeURIComponent(invite_id)}${brand_name ? `&brand_name=${encodeURIComponent(brand_name)}` : ""}`;
 
-    return res.json({
+    const record = {
       invite_id,
       club_tenant_id,
       brand_name,
       channel,
       status: "active",
+      created_at: new Date().toISOString(),
+    };
+    BRAND_INVITES.set(invite_id, record);
+
+    return res.json({
+      ...record,
       invite_url,
     });
   } catch (e) {
@@ -86,6 +93,16 @@ app.post("/invites/brand", async (req, res) => {
   }
 });
 
+
+app.get("/invites/brand/:invite_id", async (req, res) => {
+  try {
+    const invite = BRAND_INVITES.get(req.params.invite_id);
+    if (!invite || invite.status !== "active") return res.status(404).json({ error: "invite_not_found" });
+    return res.json(invite);
+  } catch (e) {
+    return res.status(500).json({ error: String(e.message || e) });
+  }
+});
 
 app.post("/tenants/club/register", async (req, res) => {
   try {
@@ -104,9 +121,13 @@ app.post("/tenants/club/register", async (req, res) => {
 
 app.post("/tenants/brand/register", async (req, res) => {
   try {
-    const club_tenant_id = (req.body?.club_tenant_id || req.body?.club_id || "").trim();
-    if (!club_tenant_id) return res.status(400).json({ error: "missing_club_tenant_id" });
+    const invite_id = (req.body?.invite_id || "").trim();
+    if (!invite_id) return res.status(400).json({ error: "invite_required" });
 
+    const invite = BRAND_INVITES.get(invite_id);
+    if (!invite || invite.status !== "active") return res.status(400).json({ error: "invalid_invite" });
+
+    const club_tenant_id = invite.club_tenant_id;
     const tenants = await adminGet("/tenants");
     const club = (tenants?.items || []).find((x) => x.tenant_id === club_tenant_id);
     if (!club || (club.metadata?.type !== "club")) {
@@ -116,11 +137,12 @@ app.post("/tenants/brand/register", async (req, res) => {
     const tenant_id = `brand_${uuid().slice(0, 8)}`;
     const payload = {
       tenant_id,
-      name: req.body?.name || req.body?.brand_name || tenant_id,
-      metadata: { type: "brand", club_tenant_id, ...(req.body || {}) },
+      name: req.body?.name || req.body?.brand_name || invite.brand_name || tenant_id,
+      metadata: { type: "brand", club_tenant_id, invite_id, ...(req.body || {}) },
     };
     const out = await adminPost("/tenants", payload);
-    res.json({ tenant_id: out.tenant_id, club_tenant_id });
+    BRAND_INVITES.set(invite_id, { ...invite, status: "claimed", claimed_brand_tenant_id: out.tenant_id });
+    res.json({ tenant_id: out.tenant_id, club_tenant_id, invite_id });
   } catch (e) {
     res.status(500).json({ error: String(e.message || e) });
   }
