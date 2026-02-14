@@ -12,19 +12,15 @@ export default function BrandOnboarding() {
 
   useEffect(() => {
     if (!router.isReady) return;
-    const qInvite = typeof router.query.invite_id === "string" ? router.query.invite_id : "";
-    const qClub = typeof router.query.club_tenant_id === "string" ? router.query.club_tenant_id : "";
-    if (qInvite) setInviteId(qInvite);
-    if (qClub) setClubTenantId(qClub);
-  }, [router.isReady, router.query.invite_id, router.query.club_tenant_id]);
+    setInviteId(typeof router.query.invite_id === "string" ? router.query.invite_id : "");
+    setClubTenantId(typeof router.query.club_tenant_id === "string" ? router.query.club_tenant_id : "");
+    if (typeof router.query.brand_name === "string") setBrandName(router.query.brand_name);
+  }, [router.isReady, router.query.invite_id, router.query.club_tenant_id, router.query.brand_name]);
 
   async function submit(e) {
     e.preventDefault();
     setMsg("");
-    if (!inviteId) {
-      setMsg("Invite link required. Please use operator shared onboarding URL.");
-      return;
-    }
+    if (!inviteId) return setMsg("Invalid onboarding link: missing invite_id.");
     try {
       const out = await jsonFetch(`${API_GATEWAY_URL}/tenants/brand/register`, {
         method: "POST",
@@ -36,7 +32,7 @@ export default function BrandOnboarding() {
         }),
       });
       setTenantId(out?.tenant_id || "");
-      setMsg("Brand tenant created. You can now open Campaign Performance and Channels.");
+      setMsg("Brand registration successful.");
     } catch (err) {
       setMsg(`Registration failed: ${String(err.message || err)}`);
     }
@@ -45,17 +41,11 @@ export default function BrandOnboarding() {
   return (
     <div>
       <h1 style={{ marginTop: 0 }}>Brand Onboarding</h1>
-      <p>Join operator FML via invite link and start ad activation.</p>
+      <p>Operator invite-based onboarding.</p>
+      <p><strong>Invite ID:</strong> {inviteId || "-"}</p>
+      <p><strong>Operator Tenant:</strong> {clubTenantId || "-"}</p>
 
       <form onSubmit={submit} style={{ background: "#fff", border: "1px solid #dce3ef", borderRadius: 12, padding: 14 }}>
-        <p>
-          Invite ID:
-          <input value={inviteId} onChange={(e) => setInviteId(e.target.value)} style={{ marginLeft: 8, width: 320, padding: 6 }} />
-        </p>
-        <p>
-          Club Tenant (optional):
-          <input value={clubTenantId} onChange={(e) => setClubTenantId(e.target.value)} style={{ marginLeft: 8, width: 220, padding: 6 }} />
-        </p>
         <p>
           Brand Name:
           <input value={brandName} onChange={(e) => setBrandName(e.target.value)} style={{ marginLeft: 8, width: 260, padding: 6 }} />

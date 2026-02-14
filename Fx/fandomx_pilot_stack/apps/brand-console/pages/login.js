@@ -20,7 +20,7 @@ export default function BrandLoginPage() {
     e.preventDefault();
     setMsg("");
     if (!brandTenantId) return setMsg("Brand tenant id required.");
-    if (!clubTenantId) return setMsg("Operator context missing (club_tenant_id).");
+    if (!clubTenantId) return setMsg("Invalid login link: missing club_tenant_id.");
 
     try {
       const cfg = await jsonFetch(`${API_GATEWAY_URL}/tenants/${brandTenantId}/config`);
@@ -49,15 +49,13 @@ export default function BrandLoginPage() {
   return (
     <div>
       <h1 style={{ marginTop: 0 }}>Brand Login</h1>
-      <p>Operator-scoped login. Brand account must belong to this operator FML.</p>
+      <p>Operator-scoped login.</p>
+      <p><strong>Operator Tenant:</strong> {clubTenantId || "-"}</p>
+
       <form onSubmit={submit} style={{ background: "#fff", border: "1px solid #dce3ef", borderRadius: 12, padding: 14 }}>
         <p>
           Brand Tenant ID:
           <input value={brandTenantId} onChange={(e) => setBrandTenantId(e.target.value)} style={{ marginLeft: 8, padding: 6, width: 260 }} />
-        </p>
-        <p>
-          Club Tenant ID:
-          <input value={clubTenantId} onChange={(e) => setClubTenantId(e.target.value)} style={{ marginLeft: 8, padding: 6, width: 220 }} />
         </p>
         <button type="submit">Login</button>
       </form>
