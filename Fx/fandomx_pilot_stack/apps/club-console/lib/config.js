@@ -1,8 +1,12 @@
-export const API_GATEWAY_URL = "https://redesigned-space-spoon-xp7vrxgpvh96wr-8080.app.github.dev";
-export const ORCHESTRATOR_URL = "https://redesigned-space-spoon-xp7vrxgpvh96wr-8090.app.github.dev";
+export const API_GATEWAY_URL = "";
+export const ORCHESTRATOR_URL = "";
 
 export async function jsonFetch(url, options = {}) {
-  const res = await fetch(url, { ...options, cache: "no-store" });
+  const resolved =
+    url.startsWith("http://") || url.startsWith("https://")
+      ? url
+      : `${window.location.origin}${url}`;
+  const res = await fetch(resolved, { ...options, cache: "no-store" });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(text || `HTTP ${res.status}`);
