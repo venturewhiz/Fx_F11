@@ -57,6 +57,36 @@ async function adminPost(path, body) {
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
+app.post("/invites/brand", async (req, res) => {
+  try {
+    const club_tenant_id = (req.body?.club_tenant_id || "").trim();
+    if (!club_tenant_id) return res.status(400).json({ error: "missing_club_tenant_id" });
+
+    const tenants = await adminGet("/tenants");
+    const club = (tenants?.items || []).find((x) => x.tenant_id === club_tenant_id);
+    if (!club || club.metadata?.type !== "club") {
+      return res.status(400).json({ error: "invalid_club_tenant_id" });
+    }
+
+    const invite_id = `inv_${uuid().slice(0, 8)}`;
+    const brand_name = (req.body?.brand_name || "").trim();
+    const channel = (req.body?.channel || "email").trim();
+    const invite_url = `/onboarding?kind=brand&club_tenant_id=${encodeURIComponent(club_tenant_id)}&invite_id=${encodeURIComponent(invite_id)}${brand_name ? `&brand_name=${encodeURIComponent(brand_name)}` : ""}`;
+
+    return res.json({
+      invite_id,
+      club_tenant_id,
+      brand_name,
+      channel,
+      status: "active",
+      invite_url,
+    });
+  } catch (e) {
+    return res.status(500).json({ error: String(e.message || e) });
+  }
+});
+
+
 app.post("/tenants/club/register", async (req, res) => {
   try {
     const tenant_id = `club_${uuid().slice(0, 8)}`;

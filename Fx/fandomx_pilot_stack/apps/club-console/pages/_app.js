@@ -14,6 +14,7 @@ const nav = [
   ["/creatives", "Creatives"],
   ["/fml", "FML Publisher"],
   ["/integrations", "Integrations"],
+  ["/brand-crm", "Brand CRM"],
   ["/rewards", "Rewards"],
   ["/settlement", "Settlement"],
   ["/reports", "Reports"],

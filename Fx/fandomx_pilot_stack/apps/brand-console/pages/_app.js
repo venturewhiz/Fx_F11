@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import AppShell from "../lib/ui/AppShell";
 import "../lib/ui/styles.css";
 import "../styles/globals.css";
@@ -22,6 +23,10 @@ const nav = [
 ];
 
 export default function App({ Component, pageProps }) {
+  const router = useRouter();
+  const clubLogo = typeof router.query.club_logo === "string" ? router.query.club_logo : "";
+  const orgLogoSrc = clubLogo || "/brand-badge.svg";
+
   return (
     <AppShell
       shellClass="fx-brand-shell"
@@ -29,7 +34,7 @@ export default function App({ Component, pageProps }) {
       subtitle=""
       nav={nav}
       stripItems={["Live Ops", "•", "Sydney FC vs Rival Club", "•", "Moment-sensitive budget engine active"]}
-      orgLogoSrc="/brand-badge.svg"
+      orgLogoSrc={orgLogoSrc}
       footerSlot={<HelpChatbot />}
     >
       <Component {...pageProps} />
