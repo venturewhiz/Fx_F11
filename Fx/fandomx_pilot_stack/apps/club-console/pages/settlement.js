@@ -5,6 +5,7 @@ export default function Settlement() {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [rows, setRows] = useState([]);
   const [msg, setMsg] = useState("");
+  const [autoRefresh, setAutoRefresh] = useState(false);
 
   async function runSettlement() {
     await jsonFetch(`${API_GATEWAY_URL}/finance/settlement/run`, {
@@ -31,6 +32,7 @@ export default function Settlement() {
         Date: <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ padding: 6 }} />
         <button onClick={runSettlement} style={{ marginLeft: 8 }}>Run</button>
         <button onClick={loadSummary} style={{ marginLeft: 8 }}>Refresh</button>
+        <label style={{ marginLeft: 8 }}><input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} /> Auto-refresh</label>
         <a href={exportHref} style={{ marginLeft: 8 }}>Export CSV</a>
       </p>
       {msg && <p style={{ color: "#1b5e20" }}>{msg}</p>}
