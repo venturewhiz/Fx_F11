@@ -293,6 +293,9 @@ app.get("/marketplace/inventory", async (req, res) => {
       return m;
     }, {});
     const { actorType, actorTenantId, actorClubTenantId } = actorScope(req);
+    if (actorType === "brand" && !actorClubTenantId) {
+      return res.status(400).json({ error: "missing_x_club_tenant_id" });
+    }
 
     const scopedRights = (rights?.items || []).filter((r) => {
       if (actorType === "platform" || actorType === "operator" || actorType === "anonymous") return true;
