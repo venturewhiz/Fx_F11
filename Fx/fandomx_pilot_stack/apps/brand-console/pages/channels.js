@@ -3,11 +3,21 @@ import { API_GATEWAY_URL, ORCHESTRATOR_URL, jsonFetch } from "../lib/config";
 import { DataTable, SectionCard } from "../lib/ui/Primitives";
 
 const LS_KEY = "fx_brand_channels_cfg_v2";
+const FALLBACK_CHANNELS = ["meta","dsp","inapp","web","ott","social","stadium"];
 
 export default function BrandChannels() {
   const [alloc, setAlloc] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [cfg, setCfg] = useState({ enabled: {}, bidFloor: {}, capPct: {} });
+  const [autoRefresh, setAutoRefresh] = useState(false);
+
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const t = setInterval(load, 5000);
+    const renderChannels = channels && channels.length ? channels : ["meta","dsp","inapp","web","ott","social","stadium"];
+
+  return () => clearInterval(t);
+  }, [autoRefresh, cfg]);
 
   useEffect(() => {
     const raw = localStorage.getItem(LS_KEY);
@@ -22,12 +32,26 @@ export default function BrandChannels() {
     }
     load();
     const t = setInterval(load, 5000);
-    return () => clearInterval(t);
+    const renderChannels = channels && channels.length ? channels : ["meta","dsp","inapp","web","ott","social","stadium"];
+
+  return () => clearInterval(t);
   }, []);
 
   useEffect(() => localStorage.setItem(LS_KEY, JSON.stringify(cfg)), [cfg]);
 
   const channels = useMemo(() => Array.from(new Set(alloc.map((x) => x.channel).filter(Boolean))), [alloc]);
+
+  function exportCsv() {
+    const header = "Channel,Status,Bid Floor,Max %,Effective Spend,ROI";
+    const body = rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob([`${header}\n${body}`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "brand_channel_dashboard.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   const rows = useMemo(() => {
     const by = {};
@@ -50,12 +74,14 @@ export default function BrandChannels() {
 
   const setField = (c, key, val) => setCfg((p) => ({ ...p, [key]: { ...(p[key] || {}), [c]: val } }));
 
+  const renderChannels = channels && channels.length ? channels : ["meta","dsp","inapp","web","ott","social","stadium"];
+
   return (
     <div>
       <h1 style={{ marginTop: 0 }}>Channel Dashboard</h1>
       <SectionCard title="Controls" className="mb-14">
         <div style={{ display: "grid", gap: 10 }}>
-          {channels.map((c) => (
+          {renderChannels.map((c) => (
             <div key={c} style={{ display: "grid", gridTemplateColumns: "180px 130px 180px 180px", gap: 10 }}>
               <strong>{c}</strong>
               <button className="fx-btn-ghost" onClick={() => setField(c, "enabled", !(cfg.enabled[c] ?? true))}>
@@ -67,6 +93,7 @@ export default function BrandChannels() {
           ))}
         </div>
       </SectionCard>
+      <p><label><input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} /> Auto-refresh</label> <button className="fx-btn-ghost" onClick={exportCsv}>Export CSV</button></p>
       <SectionCard title="Channel Table">
         <DataTable headers={["Channel", "Status", "Bid Floor", "Max %", "Effective Spend", "ROI"]} rows={rows} emptyText={`No live channels yet. Inventory: ${inventory.length}`} />
       </SectionCard>
