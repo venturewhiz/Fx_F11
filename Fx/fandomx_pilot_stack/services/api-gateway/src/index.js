@@ -363,6 +363,10 @@ app.get("/finance/revenue-rules", async (_req, res) => {
 
 app.post("/finance/settlement/run", async (req, res) => {
   try {
+    const { actorType, actorTenantId } = actorScope(req);
+    if (!(actorType === "platform" || actorType === "operator" || actorType === "club")) {
+      return res.status(403).json({ error: "settlement_scope_forbidden" });
+    }
     const date = req.body?.settlement_date;
     const query = date ? `?settlement_date=${encodeURIComponent(date)}` : "";
     const out = await fetch(`${OPTIMIZER_ADMIN_URL}/settlement/run${query}`, {
@@ -377,6 +381,10 @@ app.post("/finance/settlement/run", async (req, res) => {
 
 app.get("/finance/settlement/summary", async (req, res) => {
   try {
+    const { actorType, actorTenantId } = actorScope(req);
+    if (!(actorType === "platform" || actorType === "operator" || actorType === "club")) {
+      return res.status(403).json({ error: "settlement_scope_forbidden" });
+    }
     const date = req.query?.settlement_date;
     const query = date ? `?settlement_date=${encodeURIComponent(date)}` : "";
     const out = await adminGet("/settlement/summary", query);
@@ -388,6 +396,10 @@ app.get("/finance/settlement/summary", async (req, res) => {
 
 app.get("/finance/settlement/export", async (req, res) => {
   try {
+    const { actorType, actorTenantId } = actorScope(req);
+    if (!(actorType === "platform" || actorType === "operator" || actorType === "club")) {
+      return res.status(403).json({ error: "settlement_scope_forbidden" });
+    }
     const date = req.query?.settlement_date;
     const query = date ? `?settlement_date=${encodeURIComponent(date)}` : "";
     const r = await fetch(`${OPTIMIZER_ADMIN_URL}/settlement/export${query}`, { headers: adminHeaders() });
