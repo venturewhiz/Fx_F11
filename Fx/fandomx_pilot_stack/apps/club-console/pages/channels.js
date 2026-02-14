@@ -7,6 +7,13 @@ const LS_KEY = "fx_club_rights_cfg_v2";
 export default function ClubChannels() {
   const [alloc, setAlloc] = useState([]);
   const [cfg, setCfg] = useState({ premium: false, floor: 1.0, rightsRule: "balanced" });
+  const [autoRefresh, setAutoRefresh] = useState(false);
+
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const t = setInterval(load, 5000);
+    return () => clearInterval(t);
+  }, [autoRefresh, cfg]);
 
   useEffect(() => {
     const raw = localStorage.getItem(LS_KEY);
@@ -21,6 +28,18 @@ export default function ClubChannels() {
   }, []);
 
   useEffect(() => localStorage.setItem(LS_KEY, JSON.stringify(cfg)), [cfg]);
+
+  function exportCsv() {
+    const header = "Layer,Revenue,Share";
+    const body = rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob([`${header}\n${body}`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "club_rights_revenue_split.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   const rows = useMemo(() => {
     const total = alloc.reduce((s, x) => s + (x.allocated_budget || 0), 0);
@@ -50,6 +69,8 @@ export default function ClubChannels() {
             <option value="sponsor_first">Sponsor First</option>
             <option value="yield_first">Yield First</option>
           </select></label>
+          <label><input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} /> Auto-refresh</label>
+          <button className="fx-btn-ghost" onClick={exportCsv}>Export CSV</button>
         </div>
       </SectionCard>
       <SectionCard title="Rights Revenue Split">
