@@ -1,5 +1,14 @@
-export const API_GATEWAY_URL = "";
-export const ORCHESTRATOR_URL = "";
+function resolvePortBase(port) {
+  if (typeof window === "undefined") return `http://localhost:${port}`;
+  const { protocol, hostname } = window.location;
+  if (hostname.endsWith(".app.github.dev")) {
+    return `${protocol}//${hostname.replace(/-\d+\.app\.github\.dev$/, `-${port}.app.github.dev`)}`;
+  }
+  return `http://localhost:${port}`;
+}
+
+export const API_GATEWAY_URL = resolvePortBase(8080);
+export const ORCHESTRATOR_URL = resolvePortBase(8090);
 
 export async function jsonFetch(url, options = {}) {
   const resolved =
