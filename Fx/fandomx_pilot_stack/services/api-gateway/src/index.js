@@ -15,6 +15,24 @@ app.use((req, res, next) => {
 const OPTIMIZER_ADMIN_URL = process.env.OPTIMIZER_ADMIN_URL || "http://optimizer:8000/admin";
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "";
 
+function actorScope(req) {
+  const actorType = (req.headers["x-actor-type"] || "anonymous").toString().trim();
+  const actorTenantId = (req.headers["x-actor-tenant-id"] || "").toString().trim();
+  const actorClubTenantId = (req.headers["x-club-tenant-id"] || "").toString().trim();
+  return { actorType, actorTenantId, actorClubTenantId };
+}
+
+function requireTenantScope(req, tenantId) {
+  const { actorType, actorTenantId } = actorScope(req);
+  if (!tenantId) return { ok: false, code: 400, error: "missing_tenant_id" };
+  if (actorType === "platform" || actorType === "operator") return { ok: true };
+
+  if (!actorTenantId) return { ok: false, code: 401, error: "missing_actor_tenant_id" };
+  if (actorTenantId !== tenantId) return { ok: false, code: 403, error: "tenant_scope_forbidden" };
+  return { ok: true };
+}
+
+
 function adminHeaders() {
   const h = { "content-type": "application/json" };
   if (ADMIN_TOKEN) h["x-admin-token"] = ADMIN_TOKEN;
@@ -56,14 +74,23 @@ app.post("/tenants/club/register", async (req, res) => {
 
 app.post("/tenants/brand/register", async (req, res) => {
   try {
+    const club_tenant_id = (req.body?.club_tenant_id || req.body?.club_id || "").trim();
+    if (!club_tenant_id) return res.status(400).json({ error: "missing_club_tenant_id" });
+
+    const tenants = await adminGet("/tenants");
+    const club = (tenants?.items || []).find((x) => x.tenant_id === club_tenant_id);
+    if (!club || (club.metadata?.type !== "club")) {
+      return res.status(400).json({ error: "invalid_club_tenant_id" });
+    }
+
     const tenant_id = `brand_${uuid().slice(0, 8)}`;
     const payload = {
       tenant_id,
       name: req.body?.name || req.body?.brand_name || tenant_id,
-      metadata: { type: "brand", ...req.body },
+      metadata: { type: "brand", club_tenant_id, ...(req.body || {}) },
     };
     const out = await adminPost("/tenants", payload);
-    res.json({ tenant_id: out.tenant_id });
+    res.json({ tenant_id: out.tenant_id, club_tenant_id });
   } catch (e) {
     res.status(500).json({ error: String(e.message || e) });
   }
@@ -99,6 +126,8 @@ app.get("/tenants", async (_req, res) => {
 
 app.get("/tenants/:tenant_id/config", async (req, res) => {
   try {
+    const scope = requireTenantScope(req, req.params.tenant_id);
+    if (!scope.ok) return res.status(scope.code).json({ error: scope.error });
     const tenants = await adminGet("/tenants");
     const found = (tenants?.items || []).find((x) => x.tenant_id === req.params.tenant_id);
     if (!found) return res.status(404).json({ error: "tenant_not_found" });
@@ -111,6 +140,8 @@ app.get("/tenants/:tenant_id/config", async (req, res) => {
 
 app.post("/tenants/:tenant_id/integrations", async (req, res) => {
   try {
+    const scope = requireTenantScope(req, req.params.tenant_id);
+    if (!scope.ok) return res.status(scope.code).json({ error: scope.error });
     const { kind, config } = req.body || {};
     if (!kind) return res.status(400).json({ error: "missing_kind" });
     await adminPost("/integrations", { tenant_id: req.params.tenant_id, kind, config: config || {} });
@@ -122,6 +153,8 @@ app.post("/tenants/:tenant_id/integrations", async (req, res) => {
 
 app.get("/tenants/:tenant_id/integrations", async (req, res) => {
   try {
+    const scope = requireTenantScope(req, req.params.tenant_id);
+    if (!scope.ok) return res.status(scope.code).json({ error: scope.error });
     const out = await adminGet("/integrations", `?tenant_id=${encodeURIComponent(req.params.tenant_id)}`);
     const obj = (out?.items || []).reduce((m, r) => {
       m[r.kind] = r.config || {};
@@ -135,6 +168,8 @@ app.get("/tenants/:tenant_id/integrations", async (req, res) => {
 
 app.post("/tenants/:tenant_id/campaigns", async (req, res) => {
   try {
+    const scope = requireTenantScope(req, req.params.tenant_id);
+    if (!scope.ok) return res.status(scope.code).json({ error: scope.error });
     const payload = {
       campaign_id: req.body?.campaign_id || `camp_${uuid().slice(0, 8)}`,
       tenant_id: req.params.tenant_id,
@@ -153,6 +188,8 @@ app.post("/tenants/:tenant_id/campaigns", async (req, res) => {
 
 app.get("/tenants/:tenant_id/campaigns", async (req, res) => {
   try {
+    const scope = requireTenantScope(req, req.params.tenant_id);
+    if (!scope.ok) return res.status(scope.code).json({ error: scope.error });
     const out = await adminGet("/campaigns", `?tenant_id=${encodeURIComponent(req.params.tenant_id)}`);
     res.json(out?.items || []);
   } catch (e) {
@@ -162,6 +199,8 @@ app.get("/tenants/:tenant_id/campaigns", async (req, res) => {
 
 app.post("/tenants/:tenant_id/segments", async (req, res) => {
   try {
+    const scope = requireTenantScope(req, req.params.tenant_id);
+    if (!scope.ok) return res.status(scope.code).json({ error: scope.error });
     const payload = {
       segment_id: req.body?.segment_id || `seg_${uuid().slice(0, 8)}`,
       tenant_id: req.params.tenant_id,
@@ -177,6 +216,8 @@ app.post("/tenants/:tenant_id/segments", async (req, res) => {
 
 app.get("/tenants/:tenant_id/segments", async (req, res) => {
   try {
+    const scope = requireTenantScope(req, req.params.tenant_id);
+    if (!scope.ok) return res.status(scope.code).json({ error: scope.error });
     const out = await adminGet("/segments", `?tenant_id=${encodeURIComponent(req.params.tenant_id)}`);
     res.json((out?.items || []).map((x) => ({ ...x, rule: x.definition?.rule || "" })));
   } catch (e) {
@@ -186,6 +227,8 @@ app.get("/tenants/:tenant_id/segments", async (req, res) => {
 
 app.post("/tenants/:tenant_id/creatives", async (req, res) => {
   try {
+    const scope = requireTenantScope(req, req.params.tenant_id);
+    if (!scope.ok) return res.status(scope.code).json({ error: scope.error });
     const payload = {
       creative_id: req.body?.creative_id || `cr_${uuid().slice(0, 8)}`,
       tenant_id: req.params.tenant_id,
@@ -201,6 +244,8 @@ app.post("/tenants/:tenant_id/creatives", async (req, res) => {
 
 app.get("/tenants/:tenant_id/creatives", async (req, res) => {
   try {
+    const scope = requireTenantScope(req, req.params.tenant_id);
+    if (!scope.ok) return res.status(scope.code).json({ error: scope.error });
     const out = await adminGet("/creatives", `?tenant_id=${encodeURIComponent(req.params.tenant_id)}`);
     res.json((out?.items || []).map((x) => ({ ...x, ...(x.metadata || {}) })));
   } catch (e) {
@@ -210,6 +255,8 @@ app.get("/tenants/:tenant_id/creatives", async (req, res) => {
 
 app.post("/tenants/:tenant_id/offers", async (req, res) => {
   try {
+    const scope = requireTenantScope(req, req.params.tenant_id);
+    if (!scope.ok) return res.status(scope.code).json({ error: scope.error });
     const payload = {
       offer_id: req.body?.offer_id || `off_${uuid().slice(0, 8)}`,
       tenant_id: req.params.tenant_id,
@@ -225,6 +272,8 @@ app.post("/tenants/:tenant_id/offers", async (req, res) => {
 
 app.get("/tenants/:tenant_id/offers", async (req, res) => {
   try {
+    const scope = requireTenantScope(req, req.params.tenant_id);
+    if (!scope.ok) return res.status(scope.code).json({ error: scope.error });
     const out = await adminGet("/offers", `?tenant_id=${encodeURIComponent(req.params.tenant_id)}`);
     res.json((out?.items || []).map((x) => ({ ...x, ...(x.metadata || {}) })));
   } catch (e) {
@@ -232,7 +281,7 @@ app.get("/tenants/:tenant_id/offers", async (req, res) => {
   }
 });
 
-app.get("/marketplace/inventory", async (_req, res) => {
+app.get("/marketplace/inventory", async (req, res) => {
   try {
     const [out, rights] = await Promise.all([
       adminGet("/tenants"),
@@ -243,7 +292,16 @@ app.get("/marketplace/inventory", async (_req, res) => {
       m[t.tenant_id] = t;
       return m;
     }, {});
-    const items = (rights?.items || []).map((r) => ({
+    const { actorType, actorTenantId, actorClubTenantId } = actorScope(req);
+
+    const scopedRights = (rights?.items || []).filter((r) => {
+      if (actorType === "platform" || actorType === "operator" || actorType === "anonymous") return true;
+      if (actorType === "club") return r.inventory_owner_id === actorTenantId;
+      if (actorType === "brand") return r.inventory_owner_id === actorClubTenantId;
+      return false;
+    });
+
+    const items = scopedRights.map((r) => ({
       operator_id: r.operator_id,
       operator_name: tenantById[r.operator_id]?.name || r.operator_id,
       club_tenant_id: r.inventory_owner_id,
@@ -377,6 +435,8 @@ const INTEGRATION_CATALOG = [
 
 app.post("/tenants/:tenant_id/onboarding/plugins", async (req, res) => {
   try {
+    const scope = requireTenantScope(req, req.params.tenant_id);
+    if (!scope.ok) return res.status(scope.code).json({ error: scope.error });
     const tenantId = req.params.tenant_id;
     const items = Array.isArray(req.body?.items) ? req.body.items : [];
     if (!items.length) return res.json({ status: "ok", connected: [] });
